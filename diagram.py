@@ -1,4 +1,5 @@
 import sqlite3
+import contextlib
 
 from diagrams import Diagram, Edge, Node
 
@@ -13,31 +14,60 @@ name 'хоро'             - серый
 
 """
 
-conn = sqlite3.connect('Li_db_v1_4.db')
-cursor = conn.cursor()
 
-nodes = cursor.execute("SELECT ID, name, type FROM tochki")
+class Point:
+    """ Точки """
+    def __init__(self, id, name, type):
 
-for i in nodes.fetchall():
+        self.id = id
+        self.name = name
+        self.type = type
+
+        if name == 'time' or name == 'time_p':
+            # Временные точки входящих сигналов
+            self.group = 't'
+            color = 'lemonchiffon'
+
+        elif name == 'time_0' or name == 't0':
+            # Временные точки
+            self.group = 't0'
+            color = 'limegreen'
+
+        elif name == 'time_0' or name == 't0':
+            # Действия
+            self.group = 'action'
+            color = 'aqua'
+
+        elif name == 'хоро':
+            # Реакция Хорошо
+            self.group = 'reaction'
+            color = 'salmon'
+
+        elif name == 'пло':
+            # Реакция Плохо
+            self.group = 'reaction'
+            color = 'silver'
+
+        else:
+            # Входящие
+            self.group = 'in'
+            color = 'cadetblue'
+
+        self.node = Node(f'{id} {name}', style='filled', fillcolor=color, fontsize='20pt')
 
 
-n = []
-with Diagram('My Diagram', direction='TB'):
-    n.append(Node('n1', style='filled', fillcolor='cadetblue', fontsize="20pt"))
-    n.append(Node('n2', style='filled', fillcolor='lemonchiffon', fontsize="20pt"))
-    n.append(Node('n3', style='filled', fillcolor='aqua', fontsize="20pt"))
-    n.append(Node('n4', style='filled', fillcolor='limegreen', fontsize="20pt"))
-    n.append(Node('n5', style='filled', fillcolor='salmon', fontsize="20pt"))
-    n.append(Node('n6', style='filled', fillcolor='silver', fontsize="20pt"))
+points = []  # Все точки
 
-    for i in n:
-        for j in n:
-            i - j
-            j >> i
+# Подключение к БД
+with contextlib.closing(sqlite3.connect('Li_db_v1_4.db')) as conn:
 
-    # n1 >> n2
-    # n1 >> n3
-    # n1 >> n4
-    # n1 >> n5
-    # n3 - n4
-    # n5 >> Edge(label='This is a label', color='red') >> n6
+    nodes = conn.execute("SELECT ID, name, type FROM tochki")
+    connections = conn.execute("SELECT id_start, id_finish FROM svyazi WHERE id > 2")
+
+    with Diagram('My Diagram', direction='LR'): # LR или TB
+
+        for i in nodes.fetchall():
+            points.append(Point(*i))
+
+        for one, two in connections.fetchall():
+            points[one-1].node >> points[two-1].node
