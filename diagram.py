@@ -1,9 +1,10 @@
 import sqlite3
 import contextlib
 
-from diagrams import Diagram, Edge, Node
+from diagrams import Diagram, Cluster, Node
 
 """
+
 
 type 'mozg'             - бирюзовый
 name 'time', 'time_p'   - желтый
@@ -48,15 +49,19 @@ class Point:
             self.group = 'reaction'
             color = 'silver'
 
+        elif type == 'print':
+            # Вывод
+            self.group = 'out'
+            color = 'mediumorchid'
+
         else:
             # Входящие
             self.group = 'in'
             color = 'cadetblue'
 
-        self.node = Node(f'{id} {name}', style='filled', fillcolor=color, fontsize='20pt')
+        with Cluster(self.group):
+            self.node = Node(f'{id} {name}', style='filled', fillcolor=color, fontsize='20pt')
 
-
-points = []  # Все точки
 
 # Подключение к БД
 with contextlib.closing(sqlite3.connect('Li_db_v1_4.db')) as conn:
@@ -66,8 +71,12 @@ with contextlib.closing(sqlite3.connect('Li_db_v1_4.db')) as conn:
 
     with Diagram('My Diagram', direction='LR'): # LR или TB
 
+        points = [Point('0', 'time', '')]  # Все точки
+
         for i in nodes.fetchall():
             points.append(Point(*i))
 
+
         for one, two in connections.fetchall():
-            points[one-1].node >> points[two-1].node
+            points[one].node >> points[two].node
+
