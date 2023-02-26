@@ -4,7 +4,13 @@ import contextlib
 from diagrams import Diagram, Cluster, Node
 
 """
+Для работ программы на компьютер необходимо установить Graphviz
+(https://graphviz.org/download/)
+и модуль Python Diagrams
+(https://diagrams.mingrammer.com/docs/getting-started/installation)
 
+
+Группровка точек:
 
 type 'mozg'             - бирюзовый
 name 'time', 'time_p'   - желтый
